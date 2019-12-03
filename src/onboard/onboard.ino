@@ -35,6 +35,31 @@ bool getTelemetry(DataQueue<uint8_t> &queue) {
 	return true;
 }
 
+bool postReq(uint8_t requestData) {
+	uint16_t statuscode;
+	int16_t length;
+
+	if(!fona.HTTP_POST_start(POST_URL, F("application/x-www-form-urlencoded"), (uint8_t *) requestData, strlen(requestData), &statuscode, (uint16_t *)&length)) {
+		Serial.println("ERROR: Failed to send POST request!");
+	}
+	while (length > 0) {
+		while (fona.available()) {
+			char c = fona.read();
+
+			#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
+            	loop_until_bit_is_set(UCSR0A, UDRE0); /* Wait until data register empty. */
+            	UDR0 = c;
+			#else
+				Serial.write(c);
+			#endif
+
+			length--;
+			if (! length) break;
+          }
+        }
+	fona.HTTP_POST_end();
+}
+
 void setup() {
 	Serial.begin(115200);
 
@@ -50,9 +75,11 @@ void setup() {
 
 	delay(5000);
 
-	if(!fona.enableGPRS(true)) {
+	while(!fona.enableGPRS(true)) {
 		Serial.println(F("FONA: Trying to enable GPRS..."));
 	}
+
+	delay(5000);
 
 	if(!bme.begin()) {
 		Serial.println(F("BME: Could not initialize!"));
@@ -66,23 +93,28 @@ void setup() {
 void loop() {
 	// Wait for launch command (a phone call)
 	if(deviceState == 0) {
-			while(fona.getCallStatus() != 3) {
-				Serial.println("INFO: Standing by for launch command...");
-			}
+		while(fona.getCallStatus() != 3) {
+			Serial.println("INFO: Standing by for launch command...");
+			delay(5000);
+		}
+
 		fona.hangUp();
 		deviceState = 1;
 	} else if(deviceState == 1) {
 		if(getTelemetry(telemetryQueue)) {
 			Serial.println(telemetryQueue.item_count());
 		} else {
-			Serial.println(F("ERROR: Could not get telemetry"));
+			Serial.println(F("ERROR: Could not get telemetry!"));
 		}
 
 		if(fona.getCallStatus() == 3) {
 			deviceState = 2;
 		}
 	} else if(deviceState == 2) {
-		Serial.println("INFO: Uploading launch telemetry...");
+		Serial.println("INFO: Uploading flight telemetry...");
+		for(int i = 0; i < telemetryQueue.item_count(); i++) {
+			postReq(telemetryQueue.dequeue());
+		}
 		while(1);
 	}
 
