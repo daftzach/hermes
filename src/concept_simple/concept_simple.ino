@@ -4,7 +4,6 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <SoftwareSerial.h>
-#include <Wire.h>
 
 #define FONA_RX 2
 #define FONA_TX 3
@@ -75,6 +74,16 @@ void setup() {
 }
 
 void loop() {
+    // Wait for launch command (a phone call)
+  int8_t callState = fona.getCallStatus();
+  switch (callState) {
+          case 0: Serial.println(F("Ready")); break;
+          case 1: Serial.println(F("Could not get status")); break;
+          case 3: Serial.println(F("Ringing (incoming)")); break;
+          case 4: Serial.println(F("Ringing/in progress (outgoing)")); break;
+          default: Serial.println(F("Unknown")); break;
+        }
+
   data = String("");
   
   uint16_t statuscode;
@@ -148,7 +157,21 @@ void loop() {
 
   fona.HTTP_POST_start(url, F("application/x-www-form-urlencoded"), (uint8_t *) postData, strlen(postData), &statuscode, (uint16_t *)&length);
   
-loop_until_bit_is_set(UCSR0A, UDRE0); /* Wait until data register empty. */
+while (length > 0) {
+          while (fona.available()) {
+            char c = fona.read();
 
-  Serial.println("Freeing...");
+#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
+            loop_until_bit_is_set(UCSR0A, UDRE0); /* Wait until data register empty. */
+            UDR0 = c;
+#else
+            Serial.write(c);
+#endif
+
+            length--;
+            if (! length) break;
+          }
+        }
+
+        fona.HTTP_POST_end();
 }
