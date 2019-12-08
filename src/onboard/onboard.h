@@ -16,7 +16,7 @@
 // This limits flight data collection to approx. 5 minutes
 #define MAX_QUEUE_SIZE 500
 
-#define POST_URL "itp.zacl.me/test/api/post.php"
+#define POST_URL "itp.zacl.me/test/api/createrecord.php"
 
 #define FONA_RX  2
 #define FONA_TX  3
@@ -26,6 +26,8 @@
 #define BME_MISO 12
 #define BME_MOSI 11
 #define BME_CS   10
+
+#define MPU_ADDR 0x68
 
 #define SEALEVELPRESSURE_HPA 1013.25
 

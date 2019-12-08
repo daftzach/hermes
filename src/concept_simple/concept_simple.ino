@@ -88,7 +88,7 @@ void loop() {
   
   uint16_t statuscode;
   int16_t length;
-  char url[] = "itp.zacl.me/test/api/post.php";
+  char url[] = "itp.zacl.me/test/api/createrecord.php";
 
   Serial.println("Init data...");
 
