@@ -155,23 +155,5 @@ void loop() {
   uint8_t postData[data.length()];
   data.toCharArray(postData, data.length());
 
-  fona.HTTP_POST_start(url, F("application/x-www-form-urlencoded"), (uint8_t *) postData, strlen(postData), &statuscode, (uint16_t *)&length);
-  
-while (length > 0) {
-          while (fona.available()) {
-            char c = fona.read();
-
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
-            loop_until_bit_is_set(UCSR0A, UDRE0); /* Wait until data register empty. */
-            UDR0 = c;
-#else
-            Serial.write(c);
-#endif
-
-            length--;
-            if (! length) break;
-          }
-        }
-
-        fona.HTTP_POST_end();
+ 
 }
