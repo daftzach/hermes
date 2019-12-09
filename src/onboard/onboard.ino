@@ -15,14 +15,13 @@ String telemetry;
 
 bool getAndPostTelemetry(int flight) {
 	// BME680 Telemetry
-	uint32_t gas;
-	float temperature, pressure, humidity, altitude;
+	uint8_t pressure;
 
 	// MPU-6050 Telemetry
 	int16_t acX, acY, acZ, gyX, gyY, gyZ;
 
 	// FONA Telemetry
-	uint16_t charge, voltage;
+	uint16_t vbat, charge, voltage;
 
 	// POST request info
 	uint16_t statuscode;
@@ -75,36 +74,34 @@ bool getAndPostTelemetry(int flight) {
 	telemetry += "&yG=";
 	telemetry += gyY;
 
-	gyZ = Wire.read() << 8 | Wire.read();  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+	gyZ = Wire.read() << 8;  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 	gyZ |= Wire.read();
 	telemetry += "&zG=";
 	telemetry += gyZ;
 
-	altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
 	telemetry += "&a=";
-	telemetry += altitude;
+	telemetry += bme.readAltitude(SEALEVELPRESSURE_HPA);
 
-	temperature = bme.readTemperature();
 	telemetry += "&t=";
-	telemetry += temperature;
+	telemetry += bme.readTemperature();
 
 	pressure = bme.readPressure();
 	telemetry += "&p=";
 	telemetry += pressure;
 
-	humidity = bme.readHumidity();
 	telemetry += "&h=";
-	telemetry += humidity;
+	telemetry += bme.readHumidity();
 
-	gas = bme.readGas() / 1000.0;
 	telemetry += "&g=";
-	telemetry += gas;
+	telemetry += bme.readGas() / 1000.0;
 
-	fona.getBattPercent(&charge);
+	fona.getBattPercent(&vbat);
+	charge = vbat;
 	telemetry += "&c=";
-	telemetry += voltage;
+	telemetry += charge;
 
-	fona.getBattVoltage(&voltage);
+	fona.getBattVoltage(&vbat);
+	voltage = vbat;
 	telemetry += "&v="; 
 	telemetry += voltage;
 
