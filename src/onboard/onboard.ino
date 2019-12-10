@@ -6,9 +6,10 @@ SoftwareSerial *fonaSerial = &fonaSS;
 
 Adafruit_BME680 bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK);
 
-int8_t deviceState = 1;
+int8_t deviceState = 0;
 
-int flightID = 1;
+// CHANGE THIS AS NEEDED
+int flightID = 2;
 
 String imeiString = String("");
 String telemetry;

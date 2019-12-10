@@ -11,11 +11,6 @@
 #include <Wire.h>
 #include <SPI.h>
 
-#include <Queue.h>
-
-// This limits flight data collection to approx. 5 minutes
-#define MAX_QUEUE_SIZE 500
-
 #define POST_URL "http://itp.zacl.me/hermes/scripts/uploadTelemetry.php"
 
 #define FONA_RX  2
